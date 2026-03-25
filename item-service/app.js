@@ -22,7 +22,7 @@ app.get('/api/items', (req, res) => {
 });
 
 app.post('/api/items', (req, res) => {
-  const newItem = { id: Date.now(), ...req.body };
+  const newItem = Object.assign({}, req.body, { id: Date.now() });
   items.push(newItem);
   res.status(201).json(newItem);
 });
@@ -31,6 +31,10 @@ app.get('/api/items/:id', (req, res) => {
   const item = items.find(i => i.id === parseInt(req.params.id));
   if (!item) return res.status(404).json({ error: 'Item not found' });
   res.json(item);
+});
+
+app.get('/status', (req, res) => {
+  res.send('Service is running');
 });
 
 app.listen(PORT, () => {

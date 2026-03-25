@@ -18,7 +18,7 @@ app.get('/api/reports', (req, res) => {
 });
 
 app.post('/api/reports', (req, res) => {
-  const newReport = { id: Date.now(), ...req.body };
+  const newReport = Object.assign({}, req.body, { id: Date.now() });
   reports.push(newReport);
   res.status(201).json(newReport);
 });
@@ -27,6 +27,10 @@ app.get('/api/reports/:id', (req, res) => {
   const report = reports.find(r => r.id === parseInt(req.params.id));
   if (!report) return res.status(404).json({ error: 'Report not found' });
   res.json(report);
+});
+
+app.get('/status', (req, res) => {
+  res.send('Service is running');
 });
 
 app.listen(PORT, () => {
