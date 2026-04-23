@@ -7,45 +7,79 @@ on:
 
 jobs:
 
+  # -------------------------
+  # BUILD JOBS (PARALLEL)
+  # -------------------------
+
   build-user:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/login-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/user-service ./user-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/user-service
+
+      - name: Build & Push User
+        uses: docker/build-push-action@v5
+        with:
+          context: ./user-service
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/user-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-item:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v3
+
       - uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/item-service ./item-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/item-service
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./item-service
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/item-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   build-report:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v3
+
       - uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/report-service ./report-service
-          docker push ${{ secrets.DOCKER_USERNAME }}/report-service
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./report-service
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/report-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # -------------------------
+  # DEPLOY JOB
+  # -------------------------
 
   deploy:
-    needs: [build-user, build-item, build-report]   # wait for all builds
+    needs: [build-user, build-item, build-report]
     runs-on: ubuntu-latest
+
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v0.1.10
@@ -54,14 +88,23 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull edhanush/user-service
-            docker pull edhanush/item-service
-            docker pull edhanush/report-service
+            echo "⏱ Start Deployment Time"
+            date
+
+            docker pull ${{ secrets.DOCKER_USERNAME }}/user-service
+            docker pull ${{ secrets.DOCKER_USERNAME }}/item-service
+            docker pull ${{ secrets.DOCKER_USERNAME }}/report-service
 
             docker rm -f user-service || true
             docker rm -f item-service || true
             docker rm -f report-service || true
 
-            docker run -d -p 3001:3001 --name user-service edhanush/user-service
-            docker run -d -p 3002:3002 --name item-service edhanush/item-service
-            docker run -d -p 3003:3003 --name report-service edhanush/report-service
+            docker run -d -p 3001:3001 --name user-service ${{ secrets.DOCKER_USERNAME }}/user-service
+            docker run -d -p 3002:3002 --name item-service ${{ secrets.DOCKER_USERNAME }}/item-service
+            docker run -d -p 3003:3003 --name report-service ${{ secrets.DOCKER_USERNAME }}/report-service
+
+            echo "⏱ End Deployment Time"
+            date
+
+            echo "📊 Resource Usage:"
+            docker stats --no-stream
