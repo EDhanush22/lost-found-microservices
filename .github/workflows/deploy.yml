@@ -45,17 +45,11 @@ jobs:
             docker pull edhanush/user-service
             docker pull edhanush/item-service
             docker pull edhanush/report-service
-          
-            # 🔥 STOP ALL RUNNING CONTAINERS USING PORTS
-            docker ps -q --filter "publish=3001" | xargs -r docker stop
-            docker ps -q --filter "publish=3002" | xargs -r docker stop
-            docker ps -q --filter "publish=3003" | xargs -r docker stop
-          
-            docker ps -aq --filter "publish=3001" | xargs -r docker rm
-            docker ps -aq --filter "publish=3002" | xargs -r docker rm
-            docker ps -aq --filter "publish=3003" | xargs -r docker rm
-          
-            # RUN NEW CONTAINERS
+      
+            docker rm -f user-service || true
+            docker rm -f item-service || true
+            docker rm -f report-service || true
+      
             docker run -d -p 3001:3001 --name user-service edhanush/user-service
             docker run -d -p 3002:3002 --name item-service edhanush/item-service
             docker run -d -p 3003:3003 --name report-service edhanush/report-service
