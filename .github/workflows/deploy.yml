@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-user:
-    runs-on: self-hosted
+    runs-on: [self-hosted, user]    # ← runner-1
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -19,7 +19,7 @@ jobs:
           echo "✅ user-service build: $((END - START))s"
 
   build-item:
-    runs-on: self-hosted
+    runs-on: [self-hosted, item]    # ← runner-2
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
           echo "✅ item-service build: $((END - START))s"
 
   build-report:
-    runs-on: self-hosted
+    runs-on: [self-hosted, report]  # ← runner-3
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -44,7 +44,7 @@ jobs:
 
   deploy:
     needs: [build-user, build-item, build-report]
-    runs-on: self-hosted
+    runs-on: [self-hosted, user]    # ← any runner works for deploy
     timeout-minutes: 10
     steps:
       - name: Deploy Containers
