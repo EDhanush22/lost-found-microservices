@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-user:
-    runs-on: [self-hosted, user]    # ← runner-1
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -19,7 +19,7 @@ jobs:
           echo "✅ user-service build: $((END - START))s"
 
   build-item:
-    runs-on: [self-hosted, item]    # ← runner-2
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +31,7 @@ jobs:
           echo "✅ item-service build: $((END - START))s"
 
   build-report:
-    runs-on: [self-hosted, report]  # ← runner-3
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
@@ -44,22 +44,17 @@ jobs:
 
   deploy:
     needs: [build-user, build-item, build-report]
-    runs-on: [self-hosted, user]    # ← any runner works for deploy
+    runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - name: Deploy Containers
         run: |
           START=$(date +%s)
-
           docker rm -f user-service item-service report-service 2>/dev/null || true
-
           docker run -d -p 3001:3001 --name user-service --restart unless-stopped user-service
           docker run -d -p 3002:3002 --name item-service --restart unless-stopped item-service
           docker run -d -p 3003:3003 --name report-service --restart unless-stopped report-service
-
           END=$(date +%s)
           echo "✅ Deploy time: $((END - START))s"
-
-          echo ""
           echo "📊 Resource Usage:"
           docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
