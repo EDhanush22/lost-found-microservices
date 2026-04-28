@@ -16,7 +16,7 @@ jobs:
           START=$(date +%s)
           docker build -t user-service ./user-service
           END=$(date +%s)
-          echo "✅ user-service build: $((END - START))s"
+          echo "user-service build: $((END - START))s"
 
   build-item:
     runs-on: self-hosted
@@ -28,7 +28,7 @@ jobs:
           START=$(date +%s)
           docker build -t item-service ./item-service
           END=$(date +%s)
-          echo "✅ item-service build: $((END - START))s"
+          echo "item-service build: $((END - START))s"
 
   build-report:
     runs-on: self-hosted
@@ -40,7 +40,7 @@ jobs:
           START=$(date +%s)
           docker build -t report-service ./report-service
           END=$(date +%s)
-          echo "✅ report-service build: $((END - START))s"
+          echo "report-service build: $((END - START))s"
 
   deploy:
     needs: [build-user, build-item, build-report]
@@ -58,14 +58,6 @@ jobs:
           docker run -d -p 3003:3003 --name report-service --restart unless-stopped report-service
 
           END=$(date +%s)
-          echo "✅ Deploy time: $((END - START))s"
+          echo "Deploy time: $((END - START))s"
 
-          echo "⏳ Waiting for containers to initialize..."
-
-          until curl -s http://localhost:3001 > /dev/null 2>&1; do
-            sleep 1
-          done
-
-          echo "✅ All containers ready!"
-          echo "📊 Resource Usage:"
-          docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+          docker stats --no-stream --format "table .Name .CPUPerc .MemUsage"
