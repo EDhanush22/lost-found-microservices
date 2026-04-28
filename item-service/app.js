@@ -41,4 +41,4 @@ app.listen(PORT, () => {
   console.log(`Item Service running on http://localhost:${PORT}`);
 });
 
-// warm run 
+// cold run and doing the cold run
