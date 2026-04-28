@@ -50,11 +50,22 @@ jobs:
       - name: Deploy Containers
         run: |
           START=$(date +%s)
+
+          # Remove old containers
           docker rm -f user-service item-service report-service 2>/dev/null || true
+
+          # Start all 3 containers
           docker run -d -p 3001:3001 --name user-service --restart unless-stopped user-service
           docker run -d -p 3002:3002 --name item-service --restart unless-stopped item-service
           docker run -d -p 3003:3003 --name report-service --restart unless-stopped report-service
+
           END=$(date +%s)
           echo "✅ Deploy time: $((END - START))s"
+
+          # ✅ FIX: Wait 3 seconds for all containers to fully boot
+          echo "⏳ Waiting for containers to initialize..."
+          sleep 3
+
+          # ✅ Now capture stats — all 3 will appear
           echo "📊 Resource Usage:"
           docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
