@@ -6,47 +6,23 @@ on:
       - main
 
 jobs:
-  build-user:
+  build-and-deploy:
     runs-on: self-hosted
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - name: Build User Service
+      
+      - name: Build Services
         run: |
           START=$(date +%s)
+          
           docker build -t user-service ./user-service
-          END=$(date +%s)
-          echo "user-service build: $((END - START))s"
-
-  build-item:
-    runs-on: self-hosted
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build Item Service
-        run: |
-          START=$(date +%s)
           docker build -t item-service ./item-service
-          END=$(date +%s)
-          echo "item-service build: $((END - START))s"
-
-  build-report:
-    runs-on: self-hosted
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build Report Service
-        run: |
-          START=$(date +%s)
           docker build -t report-service ./report-service
+          
           END=$(date +%s)
-          echo "report-service build: $((END - START))s"
+          echo "Total build time: $((END - START))s"
 
-  deploy:
-    needs: [build-user, build-item, build-report]
-    runs-on: self-hosted
-    timeout-minutes: 10
-    steps:
       - name: Deploy Containers
         run: |
           START=$(date +%s)
@@ -60,4 +36,4 @@ jobs:
           END=$(date +%s)
           echo "Deploy time: $((END - START))s"
 
-          docker stats --no-stream --format "table .Name .CPUPerc .MemUsage"
+          docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
