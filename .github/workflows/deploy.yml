@@ -47,26 +47,25 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 10
     steps:
-        - name: Deploy Containers
-          run: |
-              START=$(date +%s)
+      - name: Deploy Containers
+        run: |
+          START=$(date +%s)
 
-              docker rm -f user-service item-service report-service 2>/dev/null || true
+          docker rm -f user-service item-service report-service 2>/dev/null || true
 
-              docker run -d -p 3001:3001 --name user-service --restart unless-stopped user-service
-              docker run -d -p 3002:3002 --name item-service --restart unless-stopped item-service
-              docker run -d -p 3003:3003 --name report-service --restart unless-stopped report-service
+          docker run -d -p 3001:3001 --name user-service --restart unless-stopped user-service
+          docker run -d -p 3002:3002 --name item-service --restart unless-stopped item-service
+          docker run -d -p 3003:3003 --name report-service --restart unless-stopped report-service
 
-              END=$(date +%s)
-              echo "✅ Deploy time: $((END - START))s"
+          END=$(date +%s)
+          echo "✅ Deploy time: $((END - START))s"
 
-              echo "⏳ Waiting for containers to initialize..."
+          echo "⏳ Waiting for containers to initialize..."
 
-              # Wait until Node.js is actually listening on port 3001
-              until curl -s http://localhost:3001 > /dev/null 2>&1; do
-                sleep 1
-              done
+          until curl -s http://localhost:3001 > /dev/null 2>&1; do
+            sleep 1
+          done
 
-              echo "✅ All containers ready!"
-              echo "📊 Resource Usage:"
-              docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+          echo "✅ All containers ready!"
+          echo "📊 Resource Usage:"
+          docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
