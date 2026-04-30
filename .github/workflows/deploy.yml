@@ -36,4 +36,6 @@ jobs:
           END=$(date +%s)
           echo "Deploy time: $((END - START))s"
 
+          echo "Waiting for containers to settle..."
+          sleep 10
           docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
