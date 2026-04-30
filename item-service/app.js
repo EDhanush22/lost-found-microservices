@@ -40,5 +40,3 @@ app.get('/status', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Item Service running on http://localhost:${PORT}`);
 });
-
-// Testing Warm Run Cache
